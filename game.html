@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Кофе-рейн — промо-игра для кофейни</title>
+<meta name="description" content="Брендированная мини-игра для промоакции: 30 секунд, промокод, сбор контактов. Работает по ссылке и QR-коду. Демо.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* Brand tokens — a client's palette and logo replace these in a real project. */
+:root{--brand:#6b3e26;--brand2:#c8794a;--cream:#fff4e6;--accent:#ff5c8a;--ink:#2b1a10}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--brand);font-family:Rubik,system-ui,sans-serif;color:var(--ink);overflow:hidden;user-select:none;touch-action:none}
+#wrap{position:relative;max-width:460px;height:100%;margin:0 auto;overflow:hidden;background:linear-gradient(180deg,#ffe2c2,var(--cream) 60%)}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+.hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;z-index:2;font-weight:900}
+.pill{background:#fff;border-radius:999px;padding:6px 14px;box-shadow:0 4px 0 rgba(107,62,38,.15);font-size:18px}
+.logo{font-weight:900;color:var(--brand);font-size:18px;letter-spacing:.02em}
+.screen{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:rgba(255,244,230,.94);transition:opacity .35s,transform .35s}
+.screen.hide{opacity:0;transform:scale(1.04);pointer-events:none}
+h1{font-size:40px;line-height:1;margin:10px 0;color:var(--brand);font-weight:900}
+p{margin:6px 0 18px;font-size:17px;color:#6d4c3a;font-weight:500}
+.btn{border:0;cursor:pointer;font:900 20px Rubik,sans-serif;color:#fff;background:var(--accent);height:58px;padding:0 34px;border-radius:18px;box-shadow:0 6px 0 #c23a64;transition:transform .1s}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #c23a64}
+.btn.ghost{background:transparent;color:var(--brand);box-shadow:none;font-size:16px;height:44px}
+.cup{font-size:84px;animation:bob 2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px) rotate(-4deg)}}
+.rules{display:flex;gap:14px;justify-content:center;margin:4px 0 22px;font-weight:700;font-size:15px}
+.rules div{background:#fff;border-radius:14px;padding:8px 10px;min-width:86px}
+.rules span{display:block;font-size:30px}
+.code{font:900 34px Rubik,monospace;letter-spacing:.12em;background:#fff;border:3px dashed var(--accent);border-radius:16px;padding:10px 18px;margin:8px 0 6px;color:var(--brand)}
+.small{font-size:13px;color:#8a6a58;margin:0 0 14px}
+form{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;margin-bottom:12px}
+input{height:50px;border-radius:14px;border:2px solid #f0d6bd;padding:0 14px;font:500 16px Rubik,sans-serif;outline:none;background:#fff}
+input:focus{border-color:var(--brand2)}
+.ok{color:#2f9e6b;font-weight:700;min-height:22px}
+.combo{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);font-weight:900;font-size:30px;color:var(--accent);z-index:3;pointer-events:none;opacity:0;transition:opacity .2s}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c"></canvas>
+  <div class="hud"><span class="logo">☕ КОФЕ-РЕЙН</span><span class="pill">⏱ <b id="time">30</b></span><span class="pill">⭐ <b id="score">0</b></span></div>
+  <div class="combo" id="combo"></div>
+
+  <div class="screen" id="start">
+    <div class="cup">☕</div>
+    <h1>Поймай свой кофе!</h1>
+    <p>30 секунд, чтобы наполнить стакан.<br>Наберите 150 очков — и получите скидку.</p>
+    <div class="rules"><div><span>☕🥐</span>+10</div><div><span>🍩</span>+25</div><div><span>🧊</span>−15</div></div>
+    <button class="btn" id="play">Играть</button>
+  </div>
+
+  <div class="screen hide" id="end">
+    <div class="cup" id="endIcon">🎉</div>
+    <h1 id="endTitle">Скидка ваша!</h1>
+    <p id="endText">Покажите код бариста — и кофе на 20% дешевле.</p>
+    <div class="code" id="code">LATTE20</div>
+    <p class="small">Действует 7 дней · один раз на гостя</p>
+    <form id="lead" autocomplete="on">
+      <input id="lname" placeholder="Имя" autocomplete="given-name">
+      <input id="lphone" placeholder="Телефон для напоминания" inputmode="tel" autocomplete="tel">
+      <button class="btn" type="submit" style="height:50px;font-size:17px">Сохранить скидку</button>
+    </form>
+    <div class="ok" id="leadOk"></div>
+    <button class="btn ghost" id="again">Сыграть ещё раз</button>
+  </div>
+</div>
+<script>
+"use strict";
+const wrap = document.getElementById("wrap"), cv = document.getElementById("c"), ctx = cv.getContext("2d");
+let W = 0, H = 0, dpr = 1;
+function resize() { const r = wrap.getBoundingClientRect(); dpr = Math.min(devicePixelRatio || 1, 2); W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+addEventListener("resize", resize); resize();
+
+const GOAL = 150, DURATION = 30;
+const KINDS = [
+  { e: "☕", pts: 10, w: 40 }, { e: "🥐", pts: 10, w: 30 }, { e: "🍩", pts: 25, w: 12 }, { e: "🧊", pts: -15, w: 18 }
+];
+let items = [], pops = [], cupX = 0, targetX = 0, score = 0, left = DURATION, playing = false, spawnT = 0, combo = 0, fill = 0, last = 0;
+
+function pick() { let r = Math.random() * KINDS.reduce((a, k) => a + k.w, 0); for (const k of KINDS) { if ((r -= k.w) < 0) return k; } return KINDS[0]; }
+function start() {
+  items = []; pops = []; score = 0; left = DURATION; combo = 0; fill = 0; cupX = targetX = W / 2; playing = true;
+  document.getElementById("start").classList.add("hide"); document.getElementById("end").classList.add("hide");
+  document.getElementById("score").textContent = 0; document.getElementById("leadOk").textContent = "";
+}
+function end() {
+  playing = false; const win = score >= GOAL;
+  document.getElementById("endIcon").textContent = win ? "🎉" : "☕";
+  document.getElementById("endTitle").textContent = win ? "Скидка ваша!" : `${score} очков — почти!`;
+  document.getElementById("endText").textContent = win ? "Покажите код бариста — и кофе на 20% дешевле." : "Утешительный приз — 10% на любой напиток. Или попробуйте ещё раз!";
+  document.getElementById("code").textContent = win ? "LATTE20" : "LATTE10";
+  document.getElementById("end").classList.remove("hide");
+  try { navigator.vibrate && navigator.vibrate(win ? [30, 40, 30] : 60); } catch (e) {}
+}
+document.getElementById("play").onclick = start;
+document.getElementById("again").onclick = start;
+document.getElementById("lead").onsubmit = e => {
+  e.preventDefault();
+  const name = document.getElementById("lname").value.trim(), phone = document.getElementById("lphone").value.replace(/\D/g, "");
+  if (!name || phone.length < 9) { document.getElementById("leadOk").style.color = "#d9534f"; document.getElementById("leadOk").textContent = "Введите имя и телефон"; return; }
+  // In a client project this POSTs to Google Sheets / CRM / Telegram; the demo only keeps it on the device.
+  try { localStorage.setItem("promo-lead", JSON.stringify({ name, phone, code: document.getElementById("code").textContent, t: Date.now() })); } catch (err) {}
+  document.getElementById("leadOk").style.color = "#2f9e6b"; document.getElementById("leadOk").textContent = "✓ Скидка сохранена — напомним за день до окончания";
+};
+
+function pointer(e) { const r = wrap.getBoundingClientRect(); targetX = Math.max(40, Math.min(W - 40, e.clientX - r.left)); }
+wrap.addEventListener("pointerdown", pointer); wrap.addEventListener("pointermove", pointer);
+
+function showCombo(t) { const c = document.getElementById("combo"); c.textContent = t; c.style.opacity = 1; clearTimeout(c._h); c._h = setTimeout(() => c.style.opacity = 0, 600); }
+
+function step(dt) {
+  left -= dt; if (left <= 0) { left = 0; end(); }
+  document.getElementById("time").textContent = Math.ceil(left);
+  spawnT -= dt;
+  const rate = 0.55 - (DURATION - left) * 0.008;            // spawns speed up over the round
+  if (spawnT <= 0) { spawnT = Math.max(.22, rate); const k = pick(); items.push({ ...k, x: 30 + Math.random() * (W - 60), y: -30, vy: 160 + Math.random() * 90 + (DURATION - left) * 5, r: (Math.random() - .5) * 2 }); }
+  cupX += (targetX - cupX) * Math.min(1, dt * 14);
+  const cupY = H - 110;
+  for (const it of items) {
+    it.y += it.vy * dt; it.r += dt;
+    if (!it.hit && it.y > cupY - 30 && it.y < cupY + 20 && Math.abs(it.x - cupX) < 46) {
+      it.hit = true; score = Math.max(0, score + it.pts);
+      combo = it.pts > 0 ? combo + 1 : 0;
+      if (combo && combo % 5 === 0) { score += 20; showCombo(`КОМБО ×${combo}! +20`); }
+      fill = Math.min(1, score / GOAL);
+      pops.push({ x: it.x, y: cupY - 40, t: 0, txt: (it.pts > 0 ? "+" : "") + it.pts, good: it.pts > 0 });
+      document.getElementById("score").textContent = score;
+      try { navigator.vibrate && navigator.vibrate(it.pts > 0 ? 8 : 40); } catch (e) {}
+    }
+  }
+  items = items.filter(it => !it.hit && it.y < H + 40);
+  for (const p of pops) p.t += dt;
+  pops = pops.filter(p => p.t < .8);
+}
+
+function drawCup(x, y) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = "rgba(107,62,38,.15)"; ctx.beginPath(); ctx.ellipse(0, 62, 46, 8, 0, 0, 7); ctx.fill();
+  // cup body (trapezoid), coffee level grows with progress to the goal
+  ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.moveTo(-44, -20); ctx.lineTo(44, -20); ctx.lineTo(34, 56); ctx.lineTo(-34, 56); ctx.closePath(); ctx.fill();
+  ctx.save(); ctx.clip();
+  const lvl = 56 - fill * 70; ctx.fillStyle = "#8a5232"; ctx.fillRect(-50, lvl, 100, 80);
+  ctx.fillStyle = "#e9c6a0"; ctx.beginPath(); ctx.ellipse(0, lvl, 50, 6, 0, 0, 7); ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle = "#6b3e26"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-44, -20); ctx.lineTo(44, -20); ctx.lineTo(34, 56); ctx.lineTo(-34, 56); ctx.closePath(); ctx.stroke();
+  ctx.fillStyle = "#ff5c8a"; ctx.fillRect(-40, 10, 80, 16); ctx.fillStyle = "#fff"; ctx.font = "900 11px Rubik"; ctx.textAlign = "center"; ctx.fillText("КОФЕ-РЕЙН", 0, 22);
+  ctx.restore();
+}
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  // goal bar
+  ctx.fillStyle = "rgba(107,62,38,.12)"; ctx.fillRect(16, 64, W - 32, 10);
+  ctx.fillStyle = score >= GOAL ? "#2f9e6b" : "#c8794a"; ctx.fillRect(16, 64, (W - 32) * Math.min(1, score / GOAL), 10);
+  ctx.font = "700 12px Rubik"; ctx.fillStyle = "#8a6a58"; ctx.textAlign = "right"; ctx.fillText(`цель ${GOAL}`, W - 16, 90);
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for (const it of items) { ctx.save(); ctx.translate(it.x, it.y); ctx.rotate(Math.sin(it.r) * .3); ctx.font = "40px serif"; ctx.fillText(it.e, 0, 0); ctx.restore(); }
+  drawCup(cupX, H - 110);
+  for (const p of pops) { ctx.globalAlpha = 1 - p.t / .8; ctx.font = "900 22px Rubik"; ctx.fillStyle = p.good ? "#2f9e6b" : "#d9534f"; ctx.fillText(p.txt, p.x, p.y - p.t * 60); }
+  ctx.globalAlpha = 1;
+}
+function loop(now) {
+  const dt = Math.min(.033, (now - last) / 1000 || .016); last = now;
+  if (playing) step(dt); else { cupX += (W / 2 - cupX) * .05; }
+  draw(); requestAnimationFrame(loop);
+}
+cupX = targetX = W / 2; requestAnimationFrame(loop);
+</script>
+</body>
+</html>

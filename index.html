@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Промо-игра для кофейни — кейс</title>
+<meta name="description" content="Брендированная мини-игра для промоакции: 30 секунд, промокод и сбор контактов. Работает по ссылке и QR. Демо-кейс.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--brand:#6b3e26;--accent:#ff5c8a;--cream:#fff4e6;--ink:#2b1a10;--mute:#7a5a48;--line:#f0d6bd}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font:17px/1.6 Rubik,system-ui,sans-serif}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+.hero{display:grid;grid-template-columns:1fr 360px;gap:48px;align-items:center;padding:48px 0 24px}
+@media (max-width:860px){.hero{grid-template-columns:1fr}}
+.tag{display:inline-block;font-weight:700;font-size:14px;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:5px 12px}
+h1{font-size:clamp(36px,6vw,58px);line-height:1.02;margin:16px 0 12px;font-weight:900;color:var(--brand)}
+.lead{color:var(--mute);font-size:19px;max-width:560px}
+.phone{width:340px;aspect-ratio:390/760;border-radius:44px;padding:11px;background:var(--brand);box-shadow:0 30px 60px rgba(107,62,38,.35);margin:0 auto}
+.phone iframe{width:100%;height:100%;border:0;border-radius:34px}
+.btn{display:inline-flex;align-items:center;height:54px;padding:0 24px;border-radius:16px;font-weight:900;text-decoration:none;background:var(--accent);color:#fff;box-shadow:0 5px 0 #c23a64}
+.btn.alt{background:#fff;color:var(--brand);box-shadow:none;border:1.5px solid var(--line)}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}
+h2{font-size:34px;margin:56px 0 16px;font-weight:900;color:var(--brand)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:#fff;border:1.5px solid var(--line);border-radius:20px;padding:20px}
+.card b{display:block;font-size:19px;margin-bottom:4px}
+.card p{margin:0;color:var(--mute);font-size:15px}
+.steps{counter-reset:s;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.steps div{background:#fff;border-radius:20px;padding:18px;border:1.5px solid var(--line)}
+.steps div::before{counter-increment:s;content:counter(s);display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;font-weight:900;margin-bottom:8px}
+.price{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.price div{background:#fff;border-radius:20px;padding:20px;border:1.5px solid var(--line)}
+.price b{font-size:28px;color:var(--brand)}
+.ai{background:#fff;border-radius:20px;padding:20px;border:1.5px dashed var(--accent)}
+footer{padding:48px 0;color:var(--mute);font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <span class="tag">Промо-игра · маркетинг · кейс</span>
+      <h1>Игра, которая приводит гостей обратно</h1>
+      <p class="lead">Мини-игра в стиле бренда для кофейни: 30 секунд ловишь кофе и выпечку, уворачиваешься ото льда и получаешь промокод. Взамен гость оставляет имя и телефон. Запуск по ссылке или QR на стойке — без установки приложения.</p>
+      <div class="btns"><a class="btn" href="game.html" target="_blank" rel="noopener">▶ Играть на весь экран</a><a class="btn alt" href="https://t.me/arseni_games_bot">Заказать такую игру</a></div>
+    </div>
+    <div class="phone"><iframe src="game.html" title="Промо-игра"></iframe></div>
+  </section>
+
+  <h2>Зачем бизнесу</h2>
+  <div class="grid">
+    <div class="card"><b>Возвращает гостей</b><p>Промокод с ограниченным сроком — повод прийти ещё раз. В конце игры гость получает скидку, а не просто очки.</p></div>
+    <div class="card"><b>Собирает контакты</b><p>Имя и телефон для напоминания о скидке. В реальном проекте уходят в Google Таблицу, CRM или Telegram администратору.</p></div>
+    <div class="card"><b>Работает в соцсетях</b><p>30 секунд, понятная цель, комбо — люди хотят переиграть и делятся ссылкой в сторис.</p></div>
+    <div class="card"><b>Без приложения</b><p>Открывается в браузере телефона по ссылке или QR-коду на стойке, на чеке или стакане.</p></div>
+  </div>
+
+  <h2>Как устроена</h2>
+  <div class="steps">
+    <div><b>Старт</b><br>Правила на одном экране: что ловить, что нет, какая цель.</div>
+    <div><b>30 секунд игры</b><br>Падающие предметы ускоряются, стакан наполняется вместе с прогрессом, за серию — бонус.</div>
+    <div><b>Приз</b><br>Цель достигнута — скидка 20%; нет — утешительные 10%, чтобы никто не ушёл ни с чем.</div>
+    <div><b>Контакт</b><br>Форма сохранения скидки с проверкой телефона, кнопка «Сыграть ещё раз».</div>
+  </div>
+
+  <h2>Стоимость для заказчика</h2>
+  <div class="price">
+    <div><b>от 3 000 ₽</b><p>Такая игра в цветах и с товарами вашего бренда, промокод, 2–3 дня.</p></div>
+    <div><b>от 8 000 ₽</b><p>Плюс сбор заявок в Google Таблицу или Telegram, несколько уровней, таблица рекордов.</p></div>
+    <div><b>от 15 000 ₽</b><p>Оригинальная механика под акцию, рисованная графика, аналитика переходов.</p></div>
+  </div>
+
+  <h2>Как сделано</h2>
+  <div class="ai"><b>Сделано с ИИ.</b> Игру собрал ИИ-агент (Claude Code) в моём рабочем процессе. Поэтому бренду не нужно ждать неделю: первая играбельная версия приходит через 1–2 дня. «Кофе-рейн» — вымышленный бренд, промокоды демонстрационные.</div>
+
+  <footer>Арсений Атрохов · <a href="https://condrusarsen.github.io/services/">Услуги и цены</a> · <a href="https://condrusarsen.github.io/game-ui-case/">UI-кейс игры</a> · <a href="https://t.me/arseni_games_bot">Заявка в Telegram</a></footer>
+</div>
+</body>
+</html>
